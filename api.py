@@ -61,7 +61,7 @@ def status():
                 "solution": "Run 'go build -o blackbird' in repository root"
             }), 500
             
-        # Test blackbird
+        # Test blackbird with help command
         result = subprocess.run([BLACKBIRD_PATH, "--help"], 
                               capture_output=True, text=True, timeout=10)
         
@@ -69,7 +69,7 @@ def status():
             "status": "online",
             "blackbird_available": result.returncode == 0,
             "blackbird_version": get_blackbird_version(),
-            "message": "API is running. Build blackbird binary to enable scanning."
+            "message": "API is running. Use /scan/username or /scan/email to start scans."
         })
     except Exception as e:
         return jsonify({
@@ -330,4 +330,19 @@ def get_blackbird_version():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
+    print(f"Starting Blackbird API on port {port}")
+    print(f"Blackbird path: {BLACKBIRD_PATH}")
+    print(f"Blackbird exists: {os.path.exists(BLACKBIRD_PATH)}")
+    
+    # Test if Blackbird is built
+    if os.path.exists(BLACKBIRD_PATH):
+        try:
+            result = subprocess.run([BLACKBIRD_PATH, "--help"], 
+                                  capture_output=True, text=True, timeout=5)
+            print(f"Blackbird test: {'SUCCESS' if result.returncode == 0 else 'FAILED'}")
+        except Exception as e:
+            print(f"Blackbird test error: {e}")
+    else:
+        print("Warning: Blackbird binary not found. Build it with: go build -o blackbird")
+    
     app.run(host='0.0.0.0', port=port)
